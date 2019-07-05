@@ -12,7 +12,7 @@ image:
   # When this is official, update to the proper stable release.
   #
   # @see https://github.com/stefanprodan/mgob/commit/b70e86b3acba8c82447a568cfcdd31fbd5ee3f7c
-  tag: edge
+  tag: "0.10"
 service:
   name: mgob
   externalPort: 8090
@@ -29,67 +29,56 @@ resources:
 storage:
   longTerm:
     accessMode: "ReadWriteOnce"
-    storageClass: "gp2" # Note: "gp2" is for AWS. Use the storage class for your cloud provider.
+    storageClass: "default-retain"
     name: "mgob-storage"
     size: 10Gi
   tmp:
     accessMode: "ReadWriteOnce"
-    storageClass: "gp2" # Note: "gp2" is for AWS. Use the storage class for your cloud provider.
+    storageClass: "default-retain"
     name: "mgob-tmp"
     size: 3Gi
 configMap:
   name: "mgob-config"
   data:
     # Add each plan as per below.
-    the-first-database.yml: |
+    ConnectorDb.yml: |
       target:
-        host: "mongodb-replicaset"
+        host: "shared-mongodb"
         port: 27017
-        database: "my-database"
+        database: "ConnectorDb"
         username: "mongodb-backup"
-        password: "backup-user-pwd"
+        password: "mongodb-backup"
         params: "--authenticationDatabase admin"
       scheduler:
         cron: "0 5 * * *"
         retention: 7
         timeout: 60
-      s3:
-        url: "https://s3.amazonaws.com"
-        bucket: "my-db-backups"
-        accessKey: "ABCDEFGHIJKLMNOPQRST"
-        secretKey: "be0da49b599b24115c7f53c92c729cbb2c8a17e5"
-        api: "S3v4"
-      slack:
-        url: "https://hooks.slack.com/services/..."
-        channel: mongochan
-        username: mgob
-        # 'true' to notify only on failures
-        warnOnly: false
 
-    the-second-database.yml: |
+    mstask.yml: |
       target:
-        host: "mongodb-replicaset"
+        host: "shared-mongodb"
         port: 27017
-        database: "my-database"
+        database: "mstask"
         username: "mongodb-backup"
-        password: "backup-user-pwd"
+        password: "mongodb-backup"
         params: "--authenticationDatabase admin"
       scheduler:
         cron: "0 5 * * *"
         retention: 7
         timeout: 60
-      s3:
-        url: "https://s3.amazonaws.com"
-        bucket: "my-db-backups"
-        accessKey: "ABCDEFGHIJKLMNOPQRST"
-        secretKey: "be0da49b599b24115c7f53c92c729cbb2c8a17e5"
-        api: "S3v4"
-      slack:
-        url: "https://hooks.slack.com/services/..."
-        channel: mongochan
-        username: mgob
-        # 'true' to notify only on failures
-        warnOnly: false
+
+    local.yml: |
+      target:
+        host: "shared-mongodb"
+        port: 27017
+        database: "local"
+        username: "mongodb-backup"
+        password: "mongodb-backup"
+        params: "--authenticationDatabase admin"
+      scheduler:
+        cron: "0 5 * * *"
+        retention: 7
+        timeout: 60
 secret: {}
 ## You can either insert your secret values as part of helm values, or refer externally created secrets.
 #- name: gcp-example-secret-name
